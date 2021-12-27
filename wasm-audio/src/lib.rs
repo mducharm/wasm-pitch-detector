@@ -26,6 +26,7 @@ pub struct WasmPitchDetector {
     detector: McLeodDetector<f32>,
 }
 
+#[wasm_bindgen]
 impl WasmPitchDetector {
     pub fn new(sample_rate: usize, fft_size: usize) -> WasmPitchDetector {
         utils::set_panic_hook();
@@ -45,7 +46,18 @@ impl WasmPitchDetector {
         }
 
         const POWER_THRESHOLD: f32 = 5.0;
+        const CLARITY_THRESHOLD: f32 = 0.6;
 
-        todo!();
+        let optional_pitch = self.detector.get_pitch(
+            &audio_samples,
+            self.sample_rate,
+            POWER_THRESHOLD,
+            CLARITY_THRESHOLD,
+        );
+
+        match optional_pitch {
+            Some(pitch) => pitch.frequency,
+            None => 0.0,
+        }
     }
 }
