@@ -1,8 +1,8 @@
 export default class PitchNode extends AudioWorkletNode {
 
-    init(wasmBytes, onPitchDetectedCallback, numOfSamplesPerAnalysis) {
+    init(wasmBytes, onPitchDetectedCallback, numAudioSamplesPerAnalysis) {
         this.onPitchDetectedCallback = onPitchDetectedCallback;
-        this.numOfSamplesPerAnalysis = numOfSamplesPerAnalysis;
+        this.numAudioSamplesPerAnalysis = numAudioSamplesPerAnalysis;
 
         this.port.onmessage = (ev) => this.onmessage(ev.data);
 
@@ -21,7 +21,7 @@ export default class PitchNode extends AudioWorkletNode {
             this.port.postMessage({
                 type: "init-detector",
                 sampleRate: this.context.sampleRate,
-                numAudioSamplesPerAnalysis: this.numOfSamplesPerAnalysis
+                numAudioSamplesPerAnalysis: this.numAudioSamplesPerAnalysis
             });
         } else if (ev.type === "pitch") {
             this.onPitchDetectedCallback(ev.pitch);
