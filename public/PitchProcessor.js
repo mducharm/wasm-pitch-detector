@@ -1,5 +1,5 @@
 import "./TextEncoder.js";
-import init, { WasmPitchDetector } from "./wasm-audio/wasm_audio.js"
+import init, { WasmPitchDetector } from "./wasm-audio/wasm_audio.js";
 
 class PitchProcessor extends AudioWorkletProcessor {
     constructor() {
@@ -8,19 +8,18 @@ class PitchProcessor extends AudioWorkletProcessor {
         this.samples = [];
         this.totalSamples = 0;
 
-        this.port.onmessage = (ev) => this.onmessage(ev.data);
+        this.port.onmessage = (event) => this.onmessage(event.data);
 
         this.detector = null;
     }
 
-    onmessage(ev) {
-        if (ev.type === "send-wasm-module") {
-            init(WebAssembly.compile(ev.wasmBytes))
-                .then(() => {
-                    this.port.postMessage({ type: 'wasm-module-loaded' });
-                })
-        } else if (ev.type === "init-detector") {
-            const { sampleRate, numAudioSamplesPerAnalysis } = ev;
+    onmessage(event) {
+        if (event.type === "send-wasm-module") {
+            init(WebAssembly.compile(event.wasmBytes)).then(() => {
+                this.port.postMessage({ type: 'wasm-module-loaded' });
+            });
+        } else if (event.type === 'init-detector') {
+            const { sampleRate, numAudioSamplesPerAnalysis } = event;
 
             this.numAudioSamplesPerAnalysis = numAudioSamplesPerAnalysis;
 
@@ -29,8 +28,7 @@ class PitchProcessor extends AudioWorkletProcessor {
             this.samples = new Array(numAudioSamplesPerAnalysis).fill(0);
             this.totalSamples = 0;
         }
-
-    }
+    };
 
     process(inputs, outputs) {
         const inputChannels = inputs[0];
@@ -46,19 +44,21 @@ class PitchProcessor extends AudioWorkletProcessor {
             const numOfNewSamples = inputSamples.length;
             const numOfExistingSamples = this.samples.length - numOfNewSamples;
 
-            for (let i = 0; i < numOfNewSamples; i++) {
-                this.samples[numOfExistingSamples + 1] = inputSamples[i];
+            for (let i = 0; i < numOfExistingSamples; i++) {
+                this.samples[i] = this.samples[i + numOfNewSamples];
             }
-
+            for (let i = 0; i < numOfNewSamples; i++) {
+                this.samples[numOfExistingSamples + i] = inputSamples[i];
+            }
             this.totalSamples += inputSamples.length;
         }
 
         // once buffer has enough samples, pass them to pitch detector
         if (this.totalSamples >= this.numAudioSamplesPerAnalysis && this.detector) {
-            const pitch = this.detector.detect_pitch(this.samples);
+            const result = this.detector.detect_pitch(this.samples);
 
-            if (pitch !== 0) {
-                this.port.postMessage({ type: "pitch", pitch })
+            if (result !== 0) {
+                this.port.postMessage({ type: "pitch", pitch: result });
             }
         }
 
