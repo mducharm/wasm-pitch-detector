@@ -1,5 +1,7 @@
 # wasm-pitch-detector
 
+Created from [this tutorial](https://www.toptal.com/webassembly/webassembly-rust-tutorial-web-audio).
+
 ## commands
 
 ```bash
