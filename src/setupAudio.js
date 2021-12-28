@@ -34,7 +34,7 @@ export async function setupAudio(onPitchDetectedCallback) {
     const mediaStream = await getAudioStream();
 
     const context = new window.AudioContext();
-    const audioSource = context.createMediaStreamSource();
+    const audioSource = context.createMediaStreamSource(mediaStream);
 
     let node;
 
